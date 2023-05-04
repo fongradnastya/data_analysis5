@@ -101,10 +101,10 @@ def build_graph(parameters, train_score, test_score, estimators,
     plot_accuracy_graph(parameters, name, axs[0], train_score[name],
                         test_score[name], regression=is_regression)
     name = str(estimators[1])
-    plot_accuracy_graph(parameters, name, axs[0], train_score[name],
+    plot_accuracy_graph(parameters, name, axs[1], train_score[name],
                         test_score[name], regression=is_regression)
     name = str(estimators[2])
-    plot_accuracy_graph(parameters, name, axs[0], train_score[name],
+    plot_accuracy_graph(parameters, name, axs[2], train_score[name],
                         test_score[name], regression=is_regression)
 
 
@@ -174,20 +174,7 @@ def get_new_combinations(combinations, used):
 
 
 def create_stacking_model(estimators, x_train, y_train, x_test, y_test,
-                          sample_len=3, samples_cnt=5,
-                          is_regression=False):
-    """
-
-    :param estimators:
-    :param x_train:
-    :param y_train:
-    :param x_test:
-    :param y_test:
-    :param sample_len:
-    :param samples_cnt:
-    :param is_regression:
-    :return:
-    """
+                          sample_len=3, samples_cnt=5, is_regression=False):
     new_combinations = list(combinations(estimators, sample_len))
     names = []
     train = []
