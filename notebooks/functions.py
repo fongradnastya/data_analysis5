@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import random
+
+from matplotlib.ticker import MultipleLocator
 from sklearn.ensemble import BaggingClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import StackingClassifier, StackingRegressor
@@ -9,20 +11,33 @@ from itertools import combinations
 from sklearn.ensemble import RandomForestRegressor
 
 
+def build_response_graph(column):
+    """
+    Строит распределение классов в выборке
+    :param column: массив рассматриваемых значений
+    """
+    plt.pie(column.value_counts(), labels=(0, 1))
+    plt.title("Распределение значения response в выборке")
+    plt.legend((0, 1))
+    plt.show()
+
+
 def get_best_score(best_scores, best_params, estimators=None):
     """
-
-    :param best_scores:
-    :param best_params:
-    :return:
+    Вычисляет информацию о лучшем скоре и параметрах модели
+    :param best_scores: массив оценок работы моделей
+    :param best_params: массив подобранных параметров модели
+    :return: лучший скор
     """
     best_score = max(best_scores)
     best_id = best_scores.index(best_score)
     best_score = round(best_score, 3)
     best_param = best_params[best_id]
-    print("Best parameter:", best_param)
     if estimators:
+        print("Best n_estimators:", best_param)
         print("Best estimator:", estimators[best_id])
+    else:
+        print("Best estimators combination:", best_param)
     print("Score:", best_score)
     return best_score
 
@@ -30,15 +45,15 @@ def get_best_score(best_scores, best_params, estimators=None):
 def test_models(estimators, parameters, x_train, y_train, x_test,
                 y_test, is_bagg=True, is_regression=False):
     """
-
-    :param estimators:
-    :param parameters:
-    :param x_train:
-    :param y_train:
-    :param x_test:
-    :param y_test:
-    :param is_bagg:
-    :param is_regression:
+    Тестирует параметры бэггинга и бустинга
+    :param estimators: модели для тестирования
+    :param parameters: словарь тестируемых параметров
+    :param x_train: тренировочная выборка
+    :param y_train: ответы для тренировочной выборки
+    :param x_test: тестовая выборка
+    :param y_test: ответы для тестовой выборки
+    :param is_bagg: тестируем ли работу баггинга
+    :param is_regression: работаем ли над задачей регрессии
     :return:
     """
     train_acc = {}
@@ -175,6 +190,18 @@ def get_new_combinations(combinations, used):
 
 def create_stacking_model(estimators, x_train, y_train, x_test, y_test,
                           sample_len=3, samples_cnt=5, is_regression=False):
+    """
+
+    :param estimators:
+    :param x_train:
+    :param y_train:
+    :param x_test:
+    :param y_test:
+    :param sample_len:
+    :param samples_cnt:
+    :param is_regression:
+    :return:
+    """
     new_combinations = list(combinations(estimators, sample_len))
     names = []
     train = []
@@ -202,3 +229,40 @@ def create_stacking_model(estimators, x_train, y_train, x_test, y_test,
         names.append(name)
     build_stacking_graph(names, train, test, regression=is_regression)
     return get_best_score(test, names)
+
+
+def plot_bar_graph(ax, names, scoring, title):
+    """
+    Строит столбчатую диаграмму для score моделей
+    :param ax: ось, на которой строим график
+    :param names: значения параметров
+    :param scoring: оценки при данных значениях параметров
+    :param title: заголовок для графика
+    :return:
+    """
+    ax.bar(names, scoring)
+    ax.set_title(title)
+    ax.tick_params("x", labelrotation=90)
+    ax.set_ylim((0.5, 1))
+    ax.yaxis.set_major_locator(MultipleLocator(0.05))
+    ax.yaxis.set_minor_locator(MultipleLocator(0.01))
+    for rect, score in zip(ax.patches, scoring):
+        ax.text(rect.get_x() + rect.get_width() / 2, rect.get_height() + 0.01,
+                score, ha="center")
+    ax.set_xlabel("Model", labelpad=15)
+    ax.set_ylabel("Score", labelpad=15)
+
+
+def compare_models(class_models, regression_models):
+    """
+
+    :param class_models:
+    :param regression_models:
+    :return:
+    """
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(25, 7))
+    fig.subplots_adjust(hspace=0.4)
+    plot_bar_graph(axs[0], regression_models["Model name"],
+                   regression_models["R^2"], "Regression")
+    plot_bar_graph(axs[1], class_models["Model name"],
+                   class_models["Score"], "Classification")
