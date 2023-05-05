@@ -95,44 +95,43 @@ def test_models(estimators, parameters, x_train, y_train, x_test,
         best_scores.append(max(test_acc[str(estimator)]))
         best_id = test_acc[str(estimator)].index(best_scores[-1])
         best_params.append(parameters["n_estimators"][best_id])
-    build_graph(parameters["n_estimators"], train_acc, test_acc, estimators)
+    build_parameters_graph(parameters["n_estimators"], train_acc, test_acc, estimators)
     return get_best_score(best_scores, best_params, estimators)
 
 
-def build_graph(parameters, train_score, test_score, estimators,
-                is_regression=False):
+def build_parameters_graph(parameters, train_score, test_score, estimators,
+                           is_regression=False):
     """
-
-    :param parameters:
-    :param train_score:
-    :param test_score:
-    :param estimators:
-    :param is_regression:
-    :return:
+    Строит график зависимость score от параметров модели
+    :param parameters: список параметров
+    :param train_score: результаты на тренировочной выборке
+    :param test_score: результаты на тестовой выборке
+    :param estimators: использованные модели
+    :param is_regression: рассматриваем ли задачу регрессии
     """
     fig, axs = plt.subplots(ncols=3, figsize=(20, 7))
     fig.subplots_adjust(hspace=0.4)
     name = str(estimators[0])
-    plot_accuracy_graph(parameters, name, axs[0], train_score[name],
-                        test_score[name], regression=is_regression)
+    plot_single_graph(parameters, name, axs[0], train_score[name],
+                      test_score[name], regression=is_regression)
     name = str(estimators[1])
-    plot_accuracy_graph(parameters, name, axs[1], train_score[name],
-                        test_score[name], regression=is_regression)
+    plot_single_graph(parameters, name, axs[1], train_score[name],
+                      test_score[name], regression=is_regression)
     name = str(estimators[2])
-    plot_accuracy_graph(parameters, name, axs[2], train_score[name],
-                        test_score[name], regression=is_regression)
+    plot_single_graph(parameters, name, axs[2], train_score[name],
+                      test_score[name], regression=is_regression)
 
 
-def plot_accuracy_graph(parameters, estimator_name, ax, train_acc,
-                        test_acc, regression=False):
+def plot_single_graph(parameters, estimator_name, ax, train_acc,
+                      test_acc, regression=False):
     """
-    Строит график зависимости точности от параметров модели
+    Строит один из графиков зависимости точности от параметров модели
     :param parameters: список параметров
-    :param parameter_name: название исследуемого параметра
-    :param train_acc: производительность на тренировочной выборке
-    :param test_acc: производительность на тестовой выборке
-    :param cross_acc: производительность при перекрёстной проверке
-    :param regression: используем ли модель регрессии
+    :param estimator_name: название использованной модели
+    :param ax: ось для построения графика
+    :param train_acc: результаты на тренировочной выборке
+    :param test_acc: результаты на тестовой выборке
+    :param regression: рассматриваем ли задачу регрессии
     """
     ax.plot(parameters, train_acc, label="Train")
     ax.plot(parameters, test_acc, label="Test")
@@ -148,11 +147,11 @@ def plot_accuracy_graph(parameters, estimator_name, ax, train_acc,
 def build_stacking_graph(comb_names, train_scores, test_scores,
                          regression=False):
     """
-
-    :param comb_names:
-    :param train_scores:
-    :param test_scores:
-    :param regression:
+    Строит столбчатую диаграмму score при стекинге
+    :param comb_names: названия комбинаций моделей
+    :param train_scores: результаты на тренировочной выборке
+    :param test_scores: результаты на тестовой выборке
+    :param regression: рассматриваем ли задачу регрессии
     :return:
     """
     fig, ax = plt.subplots()
@@ -175,10 +174,10 @@ def build_stacking_graph(comb_names, train_scores, test_scores,
 
 def get_new_combinations(combinations, used):
     """
-
-    :param combinations:
-    :param used:
-    :return:
+    Получает новую комбинацию моделей для стеккинга
+    :param combinations: все возможные комбинации
+    :param used: использованные комбинации
+    :return: найденная комбинация, список использованных комбинаций
     """
     numb = random.randint(0, len(combinations) - 1)
     while numb in used:
@@ -191,16 +190,16 @@ def get_new_combinations(combinations, used):
 def create_stacking_model(estimators, x_train, y_train, x_test, y_test,
                           sample_len=3, samples_cnt=5, is_regression=False):
     """
-
-    :param estimators:
-    :param x_train:
-    :param y_train:
-    :param x_test:
-    :param y_test:
-    :param sample_len:
-    :param samples_cnt:
-    :param is_regression:
-    :return:
+    Подбирает параметры для стеккинга
+    :param estimators: набор моделей для исспользования
+    :param x_train: тренировочная выборка
+    :param y_train: ответы для тренировочной выборки
+    :param x_test: тестовая выборка
+    :param y_test: ответы для тестовой выборки
+    :param sample_len: количество моделей в наборе
+    :param samples_cnt: количество тестируемых наборов
+    :param is_regression: рассматриваем ли задачу регрессии
+    :return: скор лучшей модели
     """
     new_combinations = list(combinations(estimators, sample_len))
     names = []
@@ -255,10 +254,9 @@ def plot_bar_graph(ax, names, scoring, title):
 
 def compare_models(class_models, regression_models):
     """
-
-    :param class_models:
-    :param regression_models:
-    :return:
+    Строит график для сравнения скора моделей
+    :param class_models: модели для классификации
+    :param regression_models: модели для регрессии
     """
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(25, 7))
     fig.subplots_adjust(hspace=0.4)
